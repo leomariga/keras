@@ -461,7 +461,7 @@ def allow_read_from_gcs(load_function):
 
 
 @allow_write_to_gcs
-def save_model(model, filepath, overwrite=True, include_optimizer=True):
+def save_model(model, filepath, overwrite=True, include_optimizer=True, metaData = None):
     """Save a model to a HDF5 file.
 
     Note: Please also see
@@ -490,6 +490,7 @@ def save_model(model, filepath, overwrite=True, include_optimizer=True):
             model at the target location, or instead
             ask the user with a manual prompt.
         include_optimizer: If True, save optimizer's state together.
+        metaData: User's custom dictionary-type object to save along the file
 
     # Raises
         ImportError: if h5py is not available.
@@ -510,6 +511,8 @@ def save_model(model, filepath, overwrite=True, include_optimizer=True):
         def save_function(h5file):
             _serialize_model(model, H5Dict(h5file), include_optimizer)
         save_to_binary_h5py(save_function, filepath)
+        if metaData is not None:
+            save_metaData(filepath, metaData)
     else:
         raise ValueError('unexpected type {} for `filepath`'.format(type(filepath)))
 
@@ -556,6 +559,29 @@ def load_model(filepath, custom_objects=None, compile=True):
         raise ValueError('unexpected type {} for `filepath`'.format(type(filepath)))
 
     return model
+
+@allow_read_from_gcs
+def load_model_metaData(filepath):
+    """Load Metadata from saved file.
+
+    # Arguments
+        filepath: File path of the model
+
+    # Returns
+        A dictionary-type object containing the metaData
+
+    # Raises
+        ImportError: if h5py is not available.
+        ValueError: In case of an invalid savefile.
+    """
+    if h5py is None:
+        raise ImportError('`load_model_metaData` requires h5py.')
+    if H5Dict.is_supported_type(filepath):
+        model_metadata = load_metaData(filepath)
+    else:
+        raise ValueError('unexpected type {} for `filepath`'.format(type(filepath)))
+
+    return model_metadata
 
 
 def pickle_model(model):

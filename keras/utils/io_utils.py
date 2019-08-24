@@ -422,6 +422,33 @@ def save_to_binary_h5py(save_function, stream):
 
     return return_value
 
+def save_metaData(path, metaData):
+    """Saves custom objects as attributes in the .h5 file 
+
+     # Arguments
+        path: File path for the .h5 file
+        metaData: A dictionary containing meta-parameters which the user
+            would like to save
+     """
+    with h5py.File(path, 'a') as f:
+        g = f.create_group('MetaData')
+        g.attrs.update(metaData)
+
+def load_metaData(path):
+    """Load metadata from the user
+
+     # Arguments
+        path: File path for the .h5 file
+
+    # Returns
+        User's Dictionary-type object saved in metaData
+     """
+    with h5py.File(path, 'r') as f:
+        if f.__contains__('MetaData'):
+            return f['MetaData'].attrs
+        else:
+            return None
+
 
 def _is_path_instance(path):
     # We can't use isinstance here because it would require
